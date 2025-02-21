@@ -2,14 +2,13 @@ from fastapi import FastAPI, Response
 from base64_conv import b64_to_byte
 import uvicorn
 from db import *
-import random
 
 app = FastAPI()
 
 @app.get('/')
-async def root():
-    pictures = list(map(lambda x : fs.get(file_id=x['image']['file_id']).read() , list(db.pictures.find({}))))
-    image_byte = b64_to_byte(random.choice(pictures))
+def root():
+    picture = fs.get(file_id=db.pictures.aggregate([{"$sample":{"size":1} }]).next()["image"]["file_id"]).read()
+    image_byte = b64_to_byte(picture)
     return Response(content=image_byte, media_type="image/jpg")
 
 if __name__ == "__main__":
